@@ -147,7 +147,8 @@ $( document ).ready(function() {
 
     $("#startFromExistingSOAPEndpoint").click(function(){
         var wsdlURL = $('#wsdl-url').val();
-        if (wsdlURL.trim() == "" || wsdlURL.toLowerCase().indexOf("wsdl") < 0) {
+        var wsdlFile = $('#wsdl-file').val();
+        if ( wsdlFile.trim() == "" && (wsdlURL.trim() == "" || wsdlURL.toLowerCase().indexOf("wsdl") < 0)) {
                 $('#wsdl-url').addClass('error');
                 $('.wsdlError').show();
                 console.log("Wrong endpoint.");
@@ -229,6 +230,20 @@ $( document ).ready(function() {
                $($(this).attr('data-target')).slideToggle();
            }
        });
+    });
+
+    $('#wsdlUploadTypeToggle').change(function () {
+        if (this.checked) {
+            $('#wsdl-upload-option').html('&nbsp;WSDL Archive');
+            $('#wsdl-url-section').hide();
+            $('#wsdl-file-section').show();
+            $('input[name=soap-options-rest]').attr("disabled",true);
+        } else {
+            $('#wsdl-upload-option').html('&nbsp;WSDL Url');
+            $('#wsdl-url-section').show();
+            $('#wsdl-file-section').hide();
+            $('input[name=soap-options-rest]').attr("disabled",false);
+        }
     });
 
     $('.toggleContainers .controls').hide();

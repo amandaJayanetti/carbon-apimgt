@@ -44,6 +44,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +56,7 @@ import static org.wso2.carbon.apimgt.impl.utils.APIUtil.handleException;
  */
 public class SOAPOperationBindingUtils {
     private static final Logger log = LoggerFactory.getLogger(SOAPOperationBindingUtils.class);
+    private static List<String> wsdlProcessorClasses = new ArrayList<>();
     /**
      * Gets soap operations to rest resources mapping
      * <p>
@@ -203,6 +205,51 @@ public class SOAPOperationBindingUtils {
         } catch (APIMgtWSDLException e) {
             throw new APIManagementException("Error while instantiating wsdl processor class", e);
         }
+    }
+
+    /**
+     * Returns the appropriate WSDL 1.1/WSDL 2.0 based on the file path {@code wsdlPath}.
+     *
+     * @param wsdlPath File path containing WSDL files and dependant files
+     * @return WSDL 1.1 processor for the provided content
+     * @throws APIManagementException If an error occurs while determining the processor
+     */
+    public static WSDLSOAPOperationExtractor getWSDLProcessor(String wsdlPath) throws APIManagementException {
+        if (wsdlProcessorClasses.isEmpty()) {
+            setWsdlProcessorClasses();
+        }
+        for (String clazz : getWSDLProcessorClasses()) {
+            WSDLSOAPOperationExtractor processor;
+            try {
+                processor = (WSDLSOAPOperationExtractor) Class.forName(clazz).newInstance();
+                boolean canProcess = processor.initPath(wsdlPath);
+                if (canProcess) {
+                    return processor;
+                }
+            } catch (IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+                throw new APIManagementException("Error while instantiating wsdl processor class", e);
+            } catch (APIMgtWSDLException e) {
+                throw new APIManagementException("Error while initializing wsdl processor class", e);
+            }
+        }
+        //no processors found if this line reaches
+        throw new APIManagementException("No WSDL processor found to process WSDL content");
+    }
+
+    /**
+     * Sets the list of WSDL processor classes which are currently in use
+     */
+    private static void setWsdlProcessorClasses() {
+        wsdlProcessorClasses.add("org.wso2.carbon.apimgt.impl.soaptorest.WSDL11SOAPOperationExtractor");
+        wsdlProcessorClasses.add("org.wso2.carbon.apimgt.impl.soaptorest.WSDL20SOAPOperationExtractor");
+    }
+    /**
+     * Retrieves the list of WSDL processor classes which are currently in use
+     *
+     * @return The list of WSDL processor classes which are currently in use
+     */
+    private static List<String> getWSDLProcessorClasses() {
+        return wsdlProcessorClasses;
     }
 
     /**

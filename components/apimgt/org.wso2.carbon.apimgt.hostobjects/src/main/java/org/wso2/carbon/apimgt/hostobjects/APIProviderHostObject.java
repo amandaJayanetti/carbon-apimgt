@@ -81,6 +81,7 @@ import org.wso2.carbon.apimgt.api.model.SubscribedAPI;
 import org.wso2.carbon.apimgt.api.model.Subscriber;
 import org.wso2.carbon.apimgt.api.model.Tier;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
+import org.wso2.carbon.apimgt.api.model.WSDLArchiveInfo;
 import org.wso2.carbon.apimgt.api.model.policy.Policy;
 import org.wso2.carbon.apimgt.api.model.policy.PolicyConstants;
 import org.wso2.carbon.apimgt.hostobjects.internal.HostObjectComponent;
@@ -980,6 +981,21 @@ public class APIProviderHostObject extends ScriptableObject {
         api.setAccessControl(publisherAccessControl);
         api.setAccessControlRoles(publisherAccessControlRoles);
 
+        FileHostObject wsdlFile;
+        if (apiData.containsKey("wsdlFile")) {
+            wsdlFile = (FileHostObject) apiData.get("wsdlFile", apiData);
+            if(wsdlFile != null) {
+                WSDLArchiveInfo archiveInfo = APIUtil.extractAndValidateWSDLArchive(wsdlFile.getInputStream());
+                if (archiveInfo != null) {
+                    api.setWsdlArchivePath(archiveInfo.getAbsoluteFilePath());
+                    ResourceFile wsdlResource = new ResourceFile(wsdlFile.getInputStream(),
+                            wsdlFile.getJavaScriptFile().getContentType());
+                    api.setWsdlArchive(wsdlResource);
+                }
+            }
+        }
+
+
         if (apiData.get("swagger", apiData) != null) {
             // Read URI Templates from swagger resource and set it to api object
             Set<URITemplate> uriTemplates = definitionFromOpenAPISpec.getURITemplates(api,
@@ -1174,6 +1190,18 @@ public class APIProviderHostObject extends ScriptableObject {
         }
 
         return success;
+    }
+
+    private static boolean saveAPIWithWSDLArchive(APIProvider apiProvider, API api, FileHostObject fileHostObject,
+            FileHostObject wsdlArchive, boolean isNewApi) throws APIManagementException, FaultGatewaysException {
+        try {
+            if (wsdlArchive != null && wsdlArchive.getJavaScriptFile().getLength() != 0) {
+            }
+        } catch (ScriptException e) {
+            handleException("Error while adding wsdl archive file", e);
+            return false;
+        }
+        return saveAPI(apiProvider, api, fileHostObject, isNewApi);
     }
 
     /**
