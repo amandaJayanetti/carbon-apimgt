@@ -995,7 +995,6 @@ public class APIProviderHostObject extends ScriptableObject {
             }
         }
 
-
         if (apiData.get("swagger", apiData) != null) {
             // Read URI Templates from swagger resource and set it to api object
             Set<URITemplate> uriTemplates = definitionFromOpenAPISpec.getURITemplates(api,

@@ -3965,13 +3965,13 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                     File folderToImport = new File(archiveInfo.getLocation() + "/extracted");
                     Collection<File> wsdlFiles = APIFileUtil
                             .searchFilesWithMatchingExtension(folderToImport, "wsdl");
-                    Collection<File> xsdFiles = APIFileUtil
-                            .searchFilesWithMatchingExtension(folderToImport, "xsd");
-                    if(wsdlFiles != null) {
+                    Collection<File> xsdFiles = APIFileUtil.searchFilesWithMatchingExtension(folderToImport, "xsd");
+                    if (wsdlFiles != null) {
                         for (File foundWSDLFile : wsdlFiles) {
                             Path fileLocation = Paths.get(foundWSDLFile.getAbsolutePath());
-                            byte[] updatedWSDLContent = this.getUpdatedWSDLByEnvironment(resourceUrl,
-                                    Files.readAllBytes(fileLocation), environmentName, environmentType, apiName, apiVersion);
+                            byte[] updatedWSDLContent = this
+                                    .getUpdatedWSDLByEnvironment(resourceUrl, Files.readAllBytes(fileLocation),
+                                            environmentName, environmentType, apiName, apiVersion);
                             File updatedWSDLFile = new File(foundWSDLFile.getPath());
                             wsdlFiles.remove(foundWSDLFile);
                             FileUtils.writeByteArrayToFile(updatedWSDLFile, updatedWSDLContent);
