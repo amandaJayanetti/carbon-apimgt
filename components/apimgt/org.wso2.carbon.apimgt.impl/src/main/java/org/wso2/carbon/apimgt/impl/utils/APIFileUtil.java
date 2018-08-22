@@ -40,6 +40,9 @@ import java.util.zip.ZipFile;
  */
 public class APIFileUtil {
 
+    public static final String WSDL_FILE_EXTENSION = "wsdl";
+    public static final String XSD_FILE_EXTENSION = "xsd";
+
     private static final Logger log = LoggerFactory.getLogger(APIFileUtil.class);
 
     public static String extractUploadedArchive(InputStream uploadedApiArchiveInputStream, String importedDirectoryName,

@@ -3959,13 +3959,15 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                     log.debug("Published SOAP api gateway environment name: " + environmentName + " environment type: "
                             + environmentType);
                 }
-                if (resourceUrl.endsWith(".zip")) {
+                if (resourceUrl.endsWith(APIConstants.ZIP_FILE_EXTENSION)) {
                     WSDLArchiveInfo archiveInfo = APIUtil
                             .extractAndValidateWSDLArchive((InputStream) docResourceMap.get("Data"));
-                    File folderToImport = new File(archiveInfo.getLocation() + "/extracted");
+                    File folderToImport = new File(
+                            archiveInfo.getLocation() + File.separator + APIConstants.API_WSDL_EXTRACTED_DIRECTORY);
                     Collection<File> wsdlFiles = APIFileUtil
-                            .searchFilesWithMatchingExtension(folderToImport, "wsdl");
-                    Collection<File> xsdFiles = APIFileUtil.searchFilesWithMatchingExtension(folderToImport, "xsd");
+                            .searchFilesWithMatchingExtension(folderToImport, APIFileUtil.WSDL_FILE_EXTENSION);
+                    Collection<File> xsdFiles = APIFileUtil
+                            .searchFilesWithMatchingExtension(folderToImport, APIFileUtil.XSD_FILE_EXTENSION);
                     if (wsdlFiles != null) {
                         for (File foundWSDLFile : wsdlFiles) {
                             Path fileLocation = Paths.get(foundWSDLFile.getAbsolutePath());
@@ -4014,7 +4016,10 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             FileOutputStream fos = new FileOutputStream(zipFile);
             ZipOutputStream zos = new ZipOutputStream(fos);
             for (File file : fileList) {
-                ZipEntry ze = new ZipEntry(file.getName());
+                String path = file.getAbsolutePath().substring(
+                        file.getAbsolutePath().indexOf(APIConstants.API_WSDL_EXTRACTED_DIRECTORY)
+                                + APIConstants.API_WSDL_EXTRACTED_DIRECTORY.length());
+                ZipEntry ze = new ZipEntry(path);
                 zos.putNextEntry(ze);
                 FileInputStream in = new FileInputStream(file);
                 int len;

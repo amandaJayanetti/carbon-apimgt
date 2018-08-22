@@ -1190,19 +1190,6 @@ public class APIProviderHostObject extends ScriptableObject {
 
         return success;
     }
-
-    private static boolean saveAPIWithWSDLArchive(APIProvider apiProvider, API api, FileHostObject fileHostObject,
-            FileHostObject wsdlArchive, boolean isNewApi) throws APIManagementException, FaultGatewaysException {
-        try {
-            if (wsdlArchive != null && wsdlArchive.getJavaScriptFile().getLength() != 0) {
-            }
-        } catch (ScriptException e) {
-            handleException("Error while adding wsdl archive file", e);
-            return false;
-        }
-        return saveAPI(apiProvider, api, fileHostObject, isNewApi);
-    }
-
     /**
      * This method is to functionality of add a new API in API-Provider
      *

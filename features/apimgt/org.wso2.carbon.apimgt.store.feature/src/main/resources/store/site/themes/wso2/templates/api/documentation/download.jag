@@ -39,8 +39,12 @@ if (resourceUrl.indexOf("/documentation/files") != -1 ||
 if (object == null) {
     response.status = 500;
 } else {
+    var file = new File("file:///" + object.Data);
+    file.open("r");
     response.contentType = "application/force-download";
     response.addHeader("Content-Disposition", "attachment; filename = \"" + object.name + "\"");
-    print(object.Data);
+    print(file.getStream());
+    file.close();
+    file.del();
 }
 %>

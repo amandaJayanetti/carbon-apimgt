@@ -440,6 +440,8 @@ if(jagg.isCSRFTokenValid())
                 session.put("ws",null);
                 session.put("swagger",swagger);
                 session.put("wsdl-file", wsdlFile);
+            } else {
+                session.remove("wsdl-file");
             }
 
             print({
