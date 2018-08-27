@@ -122,9 +122,9 @@ public class CertificateMgtDaoTest {
 
     @Test
     public void testGetCertificateWithNoCertificate() throws CertificateManagementException {
-        List<CertificateMetadataDTO> certificateDTO =
-                certificateMgtDAO.getCertificates(TEST_ALIAS_2, TEST_ENDPOINT_2, TENANT_ID);
-        Assert.assertEquals(0, certificateDTO.size());
+        CertificateMetadataDTO certificateDTO =
+                certificateMgtDAO.getCertificate(TEST_ALIAS_2, TEST_ENDPOINT_2, TENANT_ID);
+        Assert.assertNull(certificateDTO);
     }
 
     @Test
@@ -136,8 +136,8 @@ public class CertificateMgtDaoTest {
 
     @Test
     public void testGetCertificate() throws CertificateManagementException {
-        List<CertificateMetadataDTO> certificateDTO =
-                certificateMgtDAO.getCertificates("ALIAS_1", "EP_1", TENANT_2);
+        CertificateMetadataDTO certificateDTO =
+                certificateMgtDAO.getCertificate("ALIAS_1", "EP_1", TENANT_2);
         Assert.assertNotNull(certificateDTO);
     }
 
@@ -149,7 +149,7 @@ public class CertificateMgtDaoTest {
 
     @Test
     public void testGetCertificates() throws CertificateManagementException {
-        List<CertificateMetadataDTO> certificates = certificateMgtDAO.getCertificates(null, null, TENANT_ID);
+        List<CertificateMetadataDTO> certificates = certificateMgtDAO.getCertificates(TENANT_ID);
         Assert.assertNotNull(certificates);
         Assert.assertTrue(certificates.size() > 0);
     }
@@ -160,13 +160,10 @@ public class CertificateMgtDaoTest {
         certificateMgtDAO.addCertificate("ALIAS4", "EP4", TENANT_ID);
     }
 
-    @Test
+    @Test(expected = EndpointForCertificateExistsException.class)
     public void testAddCertificateForExistingEndpoint() throws CertificateManagementException,
             CertificateAliasExistsException, EndpointForCertificateExistsException {
-        // add certificate
-        certificateMgtDAO.addCertificate("ALIAS_WSO2_1", "http://wso2.com", TENANT_2);
-        // add same cert for endpoint with differnt alias
-        Assert.assertTrue(certificateMgtDAO.addCertificate("ALIAS_WSO2_2", "http://wso2.com", TENANT_2));
+        certificateMgtDAO.addCertificate("ALIAS_31", "EP_3", TENANT_2);
     }
 }
 
