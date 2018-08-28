@@ -163,6 +163,8 @@ public final class APIConstants {
     public static final String API_WSDL_EXTRACTED_DIRECTORY = "extracted";
     public static final String WSDL_ARCHIVES_TEMP_FOLDER = "WSDL-archives";
     public static final String WSDL_ARCHIVE_ZIP_FILE = "wsdl-archive.zip";
+    public static final String WSDL_FILE = "wsdlFile";
+    public static final String UPDATED_WSDL_ZIP = "updated.zip";
     
     public static final String API_DOC_RESOURCE_NAME = "api-doc.json";
 

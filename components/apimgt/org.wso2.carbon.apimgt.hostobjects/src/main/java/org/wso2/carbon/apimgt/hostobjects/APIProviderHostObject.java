@@ -982,12 +982,16 @@ public class APIProviderHostObject extends ScriptableObject {
         api.setAccessControlRoles(publisherAccessControlRoles);
 
         FileHostObject wsdlFile;
-        if (apiData.containsKey("wsdlFile")) {
-            wsdlFile = (FileHostObject) apiData.get("wsdlFile", apiData);
+        if (apiData.containsKey(APIConstants.WSDL_FILE)) {
+            wsdlFile = (FileHostObject) apiData.get(APIConstants.WSDL_FILE, apiData);
             if(wsdlFile != null) {
                 WSDLArchiveInfo archiveInfo = APIUtil.extractAndValidateWSDLArchive(wsdlFile.getInputStream());
                 if (archiveInfo != null) {
                     api.setWsdlArchivePath(archiveInfo.getAbsoluteFilePath());
+                    if (log.isDebugEnabled()) {
+                        log.debug("WSDL Archive in the file path " + archiveInfo.getAbsoluteFilePath()
+                                + "is extracted and validated.");
+                    }
                     ResourceFile wsdlResource = new ResourceFile(wsdlFile.getInputStream(),
                             wsdlFile.getJavaScriptFile().getContentType());
                     api.setWsdlArchive(wsdlResource);

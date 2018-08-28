@@ -219,7 +219,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
      */
     @Override
 	public Set<API> getAPIsWithTag(String tagName, String requestedTenantDomain) throws APIManagementException {
-    	
+
     	 /* We keep track of the lastUpdatedTime of the TagCache to determine its freshness.
          */
         long lastUpdatedTimeAtStart = lastUpdatedTimeForTagApi;
@@ -233,7 +233,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         		lastUpdatedTimeForTagApi = System.currentTimeMillis();
                 taggedAPIs = new ConcurrentHashMap<String, Set<API>>();
             }
-        	
+
         }
 
         boolean isTenantMode = requestedTenantDomain != null && !"null".equalsIgnoreCase(requestedTenantDomain);
@@ -273,7 +273,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
 						taggedAPIs.get(tagName).add(api);
 					}
 				} else {
-					taggedAPIs.putIfAbsent(tagName, apisWithTag);					
+					taggedAPIs.putIfAbsent(tagName, apisWithTag);
 				}
 			}
 
@@ -642,7 +642,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         int totalLength=0;
         boolean isMore = false;
         String criteria = APIConstants.LCSTATE_SEARCH_TYPE_KEY;
-        
+
         try {
             Registry userRegistry;
             boolean isTenantMode=(tenantDomain != null);
@@ -691,8 +691,8 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             }
 
             PaginationContext.init(start, end, "ASC", APIConstants.API_OVERVIEW_NAME, maxPaginationLimit);
-            
-            
+
+
             criteria = criteria + APIUtil.getORBasedSearchCriteria(apiStatus);
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(userRegistry, APIConstants.API_KEY);
             if (artifactManager != null) {
@@ -789,7 +789,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         result.put("totalLength", totalLength);
         result.put("isMore", isMore);
         return result;
-        
+
     }
 
     /**
@@ -883,7 +883,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             PaginationContext.init(start, end, "ASC", APIConstants.API_OVERVIEW_NAME, maxPaginationLimit);
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(userRegistry, APIConstants.API_KEY);
             if (artifactManager != null) {
-                
+
                 GenericArtifact[] genericArtifacts = artifactManager.findGenericArtifacts(listMap);
                 totalLength=PaginationContext.getInstance().getLength();
                 if (genericArtifacts == null || genericArtifacts.length == 0) {
@@ -1490,7 +1490,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         } catch (UserStoreException e) {
             handleException("Failed to get all the tags", e);
         }
- 
+
         return tagSet;
     }
 
@@ -3980,8 +3980,8 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                             wsdlFiles.add(updatedWSDLFile);
                         }
                         wsdlFiles.addAll(xsdFiles);
-                        getZipFileFromFileList(folderToImport + "updated.zip", wsdlFiles);
-                        wsdlContent = folderToImport + "updated.zip";
+                        getZipFileFromFileList(folderToImport + APIConstants.UPDATED_WSDL_ZIP, wsdlFiles);
+                        wsdlContent = folderToImport + APIConstants.UPDATED_WSDL_ZIP;
                     }
                 } else {
                     ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
@@ -4021,12 +4021,12 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                                 + APIConstants.API_WSDL_EXTRACTED_DIRECTORY.length());
                 ZipEntry ze = new ZipEntry(path);
                 zos.putNextEntry(ze);
-                FileInputStream in = new FileInputStream(file);
-                int len;
-                while ((len = in.read(buffer)) > 0) {
-                    zos.write(buffer, 0, len);
+                try (FileInputStream in = new FileInputStream(file)) {
+                    int len;
+                    while ((len = in.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
                 }
-                in.close();
             }
             zos.closeEntry();
             zos.close();

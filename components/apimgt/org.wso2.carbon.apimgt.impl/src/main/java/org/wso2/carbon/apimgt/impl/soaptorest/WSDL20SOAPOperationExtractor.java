@@ -134,8 +134,7 @@ public class WSDL20SOAPOperationExtractor implements WSDLSOAPOperationExtractor 
             }
         } catch (WSDLException e) {
             //This implementation class cannot process the WSDL.
-            log.debug("Cannot process the WSDL by " + this.getClass().getName(), e);
-            canProcess = false;
+            throw new APIMgtWSDLException("Cannot process the WSDL by " + this.getClass().getName(), e);
         }
         return canProcess;
     }
