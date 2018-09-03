@@ -19,6 +19,7 @@ package org.wso2.carbon.apimgt.impl.utils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
@@ -147,6 +148,14 @@ public class APIFileUtil {
 
                 File destinationFile = new File(destination, currentEntry);
                 File destinationParent = destinationFile.getParentFile();
+                String canonicalizedDestinationFilePath = destinationFile.getCanonicalPath();
+
+                if (!canonicalizedDestinationFilePath.startsWith(new File(destination).getCanonicalPath())) {
+                    String errorMessage = "Attempt to upload invalid zip archive with file at " + currentEntry +
+                            ". File path is outside target directory";
+                    log.error(errorMessage);
+                    throw new APIManagementException(errorMessage);
+                }
 
                 // create the parent directory structure
                 if (destinationParent.mkdirs()) {
@@ -174,7 +183,47 @@ public class APIFileUtil {
         }
     }
 
+    /**
+     * Extract single wsdl file file uploaded when creating a soap api.
+     *
+     * @param inputStream  file input stream of the uploaded file
+     * @param wsdlFileDir  wsdl file extraction directory
+     * @param wsdlFilePath file path of the uploaded wsdl file
+     */
+    public static void extractSingleWSDLFile(InputStream inputStream, String wsdlFileDir, String wsdlFilePath) {
+        try {
+            APIFileUtil.createDirectory(wsdlFileDir);
+            APIFileUtil.createArchiveFromInputStream(inputStream, wsdlFilePath);
+        } catch (APIManagementException e) {
+            String errorMsg = "Failed to extract wsdl file: " + wsdlFilePath;
+            log.error(errorMsg, e);
+        }
+    }
+
+    /**
+     * Returns a collection of files for the given extension.
+     *
+     * @param folder    folder that include files
+     * @param extension file extension
+     * @return collection of files for the extension
+     */
     public static Collection<File> searchFilesWithMatchingExtension(File folder, String extension) {
         return FileUtils.listFiles(folder, new String[] {extension}, true);
+    }
+
+    /**
+     * Deletes a parent directory of a given file path.
+     *
+     * @param filePath file path
+     */
+    public static void deleteParentDirectory(String filePath) {
+        if (StringUtils.isNotBlank(filePath)) {
+            try {
+                FileUtils.deleteDirectory(new File(filePath).getParentFile());
+            } catch (IOException e) {
+                log.warn("Failed to clean temporary files at : " + filePath +
+                        " Delete those files manually or it will be cleared after a server restart.");
+            }
+        }
     }
 }

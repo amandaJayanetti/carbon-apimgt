@@ -232,19 +232,17 @@ $( document ).ready(function() {
        });
     });
 
-    $('#wsdlUploadTypeToggle').change(function () {
-        if (this.checked) {
-            $('#wsdl-upload-option').html('&nbsp;WSDL Archive');
-            $('#wsdl-url-section').hide();
-            $('#wsdl-file-section').show();
-            $('input[name=soap-options-rest]').attr("disabled",true);
-        } else {
-            $('#wsdl-upload-option').html('&nbsp;WSDL Url');
-            $('#wsdl-url-section').show();
-            $('#wsdl-file-section').hide();
-            $('input[name=soap-options-rest]').attr("disabled",false);
-        }
-    });
+	$('input[type=radio][name=wsdl-options-select]').change(function() {
+		if(this.value === 'url') {
+		    $('#wsdl-url-section').show();
+		    $('#wsdl-file-section').hide();
+		    $('input[name=soap-options-rest]').attr("disabled",false);
+		} else if(this.value === 'archive') {
+		    $('#wsdl-url-section').hide();
+		    $('#wsdl-file-section').show();
+		    $('input[name=soap-options-rest]').attr("disabled",true);
+		}
+	});
 
     $('.toggleContainers .controls').hide();
     $('.toggleRadios input[type=radio]').prop('checked', false);

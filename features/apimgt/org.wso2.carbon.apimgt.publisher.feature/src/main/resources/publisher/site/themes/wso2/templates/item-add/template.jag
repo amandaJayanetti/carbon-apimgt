@@ -96,13 +96,16 @@
 				<div class="panel-body">
 					<form class="form-horizontal" id="startFromExistingSOAPEndpoint-form" enctype="multipart/form-data" action="<%= jagg.url("/site/blocks/item-design/ajax/add.jag") %>">
 				        <div class="form-group">
-                            <div class="col-sm-12 form-inline">
-                                <label class="switch">
-                                    <input type="checkbox" id="wsdlUploadTypeToggle">
-                                    <span class="helper"></span>
-                                </label>
-		                        <label id="wsdl-upload-option" class="control-label">&nbsp;WSDL Url</label>
-                            </div>
+			    			<div class="col-sm-12">
+								<label class="radio">
+                                    <input type="radio" checked="checked" name="wsdl-options-select" value="url">
+                                    <span class="helper"><%=i18n.localize("WSDL Url")%></span>
+								</label>
+								<label class="radio">
+                                     <input type="radio" name="wsdl-options-select" value="archive">
+                                     <span class="helper"><%=i18n.localize("WSDL Archive")%></span>
+								 </label>
+							</div>
 						</div>
 						<div class="form-group">
 	                               <div id="wsdl-url-section" class="col-sm-12">
