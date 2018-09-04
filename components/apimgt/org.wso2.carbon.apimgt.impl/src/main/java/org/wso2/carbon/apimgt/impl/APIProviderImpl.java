@@ -44,7 +44,6 @@ import org.wso2.carbon.apimgt.api.FaultGatewaysException;
 import org.wso2.carbon.apimgt.api.PolicyDeploymentFailureException;
 import org.wso2.carbon.apimgt.api.UnsupportedPolicyTypeException;
 import org.wso2.carbon.apimgt.api.WorkflowResponse;
-import org.wso2.carbon.apimgt.api.dto.CertificateInformationDTO;
 import org.wso2.carbon.apimgt.api.dto.CertificateMetadataDTO;
 import org.wso2.carbon.apimgt.api.dto.UserApplicationAPIUsage;
 import org.wso2.carbon.apimgt.api.model.API;
@@ -141,14 +140,12 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.rmi.RemoteException;
-import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2820,6 +2817,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             String environments = apiArtifact.getAttribute(APIConstants.API_OVERVIEW_ENVIRONMENTS);
             String type = apiArtifact.getAttribute(APIConstants.API_OVERVIEW_TYPE);
             String context_val = apiArtifact.getAttribute(APIConstants.API_OVERVIEW_CONTEXT);
+            String implementation = apiArtifact.getAttribute(APIConstants.PROTOTYPE_OVERVIEW_IMPLEMENTATION);
             //Delete the dependencies associated  with the api artifact
             GovernanceArtifact[] dependenciesArray = apiArtifact.getDependencies();
 
@@ -2854,6 +2852,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             api.setAsPublishedDefaultVersion(api.getId().getVersion().equals(apiMgtDAO.getPublishedDefaultVersion(api.getId())));
             api.setType(type);
             api.setContext(context_val);
+            api.setImplementation(implementation);
             // gatewayType check is required when API Management is deployed on
             // other servers to avoid synapse
             if (gatewayExists && "Synapse".equals(gatewayType)) {
@@ -5170,7 +5169,6 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
     @Override
     public int addCertificate(String userName, String certificate, String alias, String endpoint)
             throws APIManagementException {
-
         ResponseCode responseCode = ResponseCode.INTERNAL_SERVER_ERROR;
         CertificateManager certificateManager = new CertificateManagerImpl();
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
@@ -5197,7 +5195,6 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
 
     @Override
     public int deleteCertificate(String userName, String alias, String endpoint) throws APIManagementException {
-
         ResponseCode responseCode = ResponseCode.INTERNAL_SERVER_ERROR;
         CertificateManager certificateManager = new CertificateManagerImpl();
         String tenantDomain = MultitenantUtils.getTenantDomain(userName);
@@ -5223,14 +5220,12 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
 
     @Override
     public boolean isConfigured() {
-
         CertificateManager certificateManager = new CertificateManagerImpl();
         return certificateManager.isConfigured();
     }
 
     @Override
     public List<CertificateMetadataDTO> getCertificates(String userName) throws APIManagementException {
-
         CertificateManager certificateManager = new CertificateManagerImpl();
         int tenantId = 0;
         try {
@@ -5240,55 +5235,6 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             handleException("Error while reading tenant information", e);
         }
         return certificateManager.getCertificates(tenantId);
-    }
-
-    @Override
-    public List<CertificateMetadataDTO> searchCertificates(int tenantId, String alias, String endpoint) throws
-            APIManagementException {
-
-        CertificateManager certificateManager = new CertificateManagerImpl();
-        return certificateManager.getCertificates(tenantId, alias, endpoint);
-    }
-
-    @Override
-    public boolean isCertificatePresent(int tenantId, String alias) throws APIManagementException {
-
-        CertificateManager certificateManager = new CertificateManagerImpl();
-        return certificateManager.isCertificatePresent(tenantId, alias);
-    }
-
-    @Override
-    public CertificateInformationDTO getCertificateStatus(String alias) throws APIManagementException {
-
-        CertificateManager certificateManager = new CertificateManagerImpl();
-        return certificateManager.getCertificateInformation(alias);
-    }
-
-    @Override
-    public int updateCertificate(String certificateString, String alias) throws APIManagementException {
-
-        CertificateManager certificateManager = new CertificateManagerImpl();
-        ResponseCode responseCode = certificateManager.updateCertificate(certificateString, alias);
-
-        if (ResponseCode.SUCCESS == responseCode) {
-            GatewayCertificateManager gatewayCertificateManager = new GatewayCertificateManager();
-            gatewayCertificateManager.removeFromGateways(alias);
-            gatewayCertificateManager.addToGateways(certificateString, alias);
-        }
-        return responseCode != null ? responseCode.getResponseCode() :
-                ResponseCode.INTERNAL_SERVER_ERROR.getResponseCode();
-    }
-
-    @Override
-    public int getCertificateCountPerTenant(int tenantId) throws APIManagementException {
-
-        return new CertificateManagerImpl().getCertificateCount(tenantId);
-    }
-
-    @Override
-    public ByteArrayInputStream getCertificateContent(String alias) throws APIManagementException {
-
-        return new CertificateManagerImpl().getCertificateContent(alias);
     }
 
     /**
