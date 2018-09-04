@@ -414,10 +414,11 @@
 												<div class="col-sm-6">
 													<div class="input-append">
 														<input type="text" class="form-control validInput" id="wsdl" name="wsdl"  value="<%= encode.forHtmlAttribute(wsdl) %>" />
-														<% if(wsdlFile) {%><input type="hidden" style="display:none" id="wsdl-file" name="wsdl-file"  value="<%=encode.forHtmlAttribute(wsdlFile)%>" /><%}%>
+														<% if(wsdlFile) {%><input type="hidden" style="display:none" id="wsdl-file" name="wsdl-file"  value="<%=encode.forHtmlAttribute(wsdlFile)%>" /><%} else{%>
 														<div class="btn-group">
 															<button class="btn check_url_valid" url-type="wsdl" type="button"><%=i18n.localize("Test URI")%></button>
 														</div>
+														<% }%>
 													</div>
 												</div>
 											</div>

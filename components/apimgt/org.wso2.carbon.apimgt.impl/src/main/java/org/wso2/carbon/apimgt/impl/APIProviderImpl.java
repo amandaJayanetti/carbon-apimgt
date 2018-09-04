@@ -2667,7 +2667,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
                 }
             }
 
-            if(api.getWsdlArchive() != null) {
+            if (api.getWsdlArchive() != null) {
                 APIUtil.saveWSDLArchive(registry, api);
             }
 

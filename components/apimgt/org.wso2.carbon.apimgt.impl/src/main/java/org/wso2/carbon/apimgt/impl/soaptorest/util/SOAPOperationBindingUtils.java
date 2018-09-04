@@ -28,6 +28,7 @@ import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.soaptorest.WSDL11SOAPOperationExtractor;
+import org.wso2.carbon.apimgt.impl.soaptorest.WSDL20SOAPOperationExtractor;
 import org.wso2.carbon.apimgt.impl.soaptorest.WSDLSOAPOperationExtractor;
 import org.wso2.carbon.apimgt.impl.soaptorest.exceptions.APIMgtWSDLException;
 import org.wso2.carbon.apimgt.impl.soaptorest.model.WSDLOperationParam;
@@ -55,8 +56,9 @@ import static org.wso2.carbon.apimgt.impl.utils.APIUtil.handleException;
  * Util class used for soap operation binding related.
  */
 public class SOAPOperationBindingUtils {
+
     private static final Logger log = LoggerFactory.getLogger(SOAPOperationBindingUtils.class);
-    private static List<String> wsdlProcessorClasses = new ArrayList<>();
+
     /**
      * Gets soap operations to rest resources mapping
      * <p>
@@ -215,39 +217,21 @@ public class SOAPOperationBindingUtils {
      * @throws APIManagementException If an error occurs while determining the processor
      */
     public static WSDLSOAPOperationExtractor getWSDLProcessor(String wsdlPath) throws APIManagementException {
-        if (wsdlProcessorClasses.isEmpty()) {
-            setWsdlProcessorClasses();
-        }
-        for (String clazz : getWSDLProcessorClasses()) {
-            WSDLSOAPOperationExtractor processor;
-            try {
-                processor = (WSDLSOAPOperationExtractor) Class.forName(clazz).newInstance();
-                boolean canProcess = processor.initPath(wsdlPath);
-                if (canProcess) {
-                    return processor;
-                }
-            } catch (IllegalAccessException | InstantiationException | ClassNotFoundException | APIMgtWSDLException e) {
-                handleException("Error while instantiating wsdl processor class.", e);
+        WSDLSOAPOperationExtractor wsdl11Processor = new WSDL11SOAPOperationExtractor();
+        WSDLSOAPOperationExtractor wsdl20Processor = new WSDL20SOAPOperationExtractor();
+        boolean canProcess;
+        try {
+            canProcess = wsdl11Processor.initPath(wsdlPath);
+            if (canProcess) {
+                return wsdl11Processor;
+            } else if (wsdl20Processor.initPath(wsdlPath)){
+                return wsdl20Processor;
             }
+        } catch (APIMgtWSDLException e) {
+            handleException("Error while instantiating wsdl processor class.", e);
         }
         //no processors found if this line reaches
         throw new APIManagementException("No WSDL processor found to process WSDL content.");
-    }
-
-    /**
-     * Sets the list of WSDL processor classes which are currently in use
-     */
-    private static void setWsdlProcessorClasses() {
-        wsdlProcessorClasses.add("org.wso2.carbon.apimgt.impl.soaptorest.WSDL11SOAPOperationExtractor");
-        wsdlProcessorClasses.add("org.wso2.carbon.apimgt.impl.soaptorest.WSDL20SOAPOperationExtractor");
-    }
-    /**
-     * Retrieves the list of WSDL processor classes which are currently in use
-     *
-     * @return The list of WSDL processor classes which are currently in use
-     */
-    private static List<String> getWSDLProcessorClasses() {
-        return wsdlProcessorClasses;
     }
 
     /**

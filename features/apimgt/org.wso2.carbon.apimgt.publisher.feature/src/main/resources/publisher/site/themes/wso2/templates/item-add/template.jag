@@ -103,7 +103,7 @@
 								</label>
 								<label class="radio">
                                      <input type="radio" name="wsdl-options-select" value="archive">
-                                     <span class="helper"><%=i18n.localize("WSDL Archive")%></span>
+                                     <span class="helper"><%=i18n.localize("WSDL Archive/File")%></span>
 								 </label>
 							</div>
 						</div>
@@ -114,7 +114,7 @@
 	                               </div>
 	                               	<div id="wsdl-file-section" style="display:none" class="controls col-sm-12">
 								        <div class="input-group input-wrap file-upload-control">
-									        <input type="text" class="form-control" placeholder="Click Browse to add a file" readonly>
+									        <input type="text" class="form-control" placeholder="Click Browse to add a wsdl archive(.zip) or file   " readonly>
                                             <input id="wsdl-file" name="wsdl-file" type="file" title="wsdl-file" class="form-control" multiple>
                                             <label for="wsdl-file" class="error swaggerFileError" style="display:none"><%=i18n.localize("Please use a valid wsdl file")%></label>
                                             <div class="input-group-btn">

@@ -210,6 +210,9 @@ if(jagg.isCSRFTokenValid())
                 var passThrough = request.getParameter("soap-options-pass-thru");
                 var rest = request.getParameter("soap-options-rest");
                 wsdl = "soap";
+                if(wsdlFile) {
+                    wsdl = wsdlFile.getName();
+                }
                 if(url){
                     wsdl = url.trim();
                 }

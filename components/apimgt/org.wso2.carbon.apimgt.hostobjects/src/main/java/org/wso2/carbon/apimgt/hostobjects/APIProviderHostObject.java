@@ -986,7 +986,7 @@ public class APIProviderHostObject extends ScriptableObject {
         FileHostObject wsdlFile;
         if (apiData.containsKey(APIConstants.WSDL_FILE)) {
             wsdlFile = (FileHostObject) apiData.get(APIConstants.WSDL_FILE, apiData);
-            if(wsdlFile != null) {
+            if (wsdlFile != null) {
                 if (wsdlFile.getName().endsWith(APIConstants.ZIP_FILE_EXTENSION)) {
                     WSDLArchiveInfo archiveInfo = APIUtil.extractAndValidateWSDLArchive(wsdlFile.getInputStream());
                     if (archiveInfo != null) {
