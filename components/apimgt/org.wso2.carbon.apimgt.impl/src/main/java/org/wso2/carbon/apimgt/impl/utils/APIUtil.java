@@ -1238,6 +1238,21 @@ public final class APIUtil {
     }
 
     /**
+     * Utility method for get registry path for wsdl archive.
+     *
+     * @param identifier APIIdentifier
+     * @return wsdl archive path
+     */
+    public static String getWsdlArchivePath(APIIdentifier identifier) {
+        String wsdlArchiveResourcePath =
+                APIConstants.API_WSDL_RESOURCE_LOCATION + APIConstants.API_WSDL_ARCHIVE_LOCATION + identifier
+                        .getProviderName() +
+                        APIConstants.WSDL_PROVIDER_SEPERATOR + identifier.getApiName() + identifier.getVersion()
+                        + APIConstants.ZIP_FILE_EXTENSION;
+        return wsdlArchiveResourcePath;
+    }
+
+    /**
      * Utility method to generate the path for a file.
      *
      * @param identifier APIIdentifier

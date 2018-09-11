@@ -975,7 +975,7 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             }
 
             //Update WSDL in the registry
-            if (api.getWsdlUrl() != null) {
+            if (api.getWsdlUrl() != null && StringUtils.isBlank(api.getWsdlArchivePath())) {
                 updateWsdl(api);
             }
 
@@ -2886,6 +2886,11 @@ class APIProviderImpl extends AbstractAPIManager implements APIProvider {
             String thumbPath = APIUtil.getIconPath(identifier);
             if (registry.resourceExists(thumbPath)) {
                 registry.delete(thumbPath);
+            }
+
+            String wsdlArchivePath = APIUtil.getWsdlArchivePath(identifier);
+            if (registry.resourceExists(wsdlArchivePath)) {
+                registry.delete(wsdlArchivePath);
             }
             
             /*Remove API Definition Resource - swagger*/
