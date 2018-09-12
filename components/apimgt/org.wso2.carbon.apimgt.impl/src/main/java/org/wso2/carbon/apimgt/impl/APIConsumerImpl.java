@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.apimgt.impl;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
@@ -56,6 +57,7 @@ import org.wso2.carbon.apimgt.api.model.SubscriptionResponse;
 import org.wso2.carbon.apimgt.api.model.Tag;
 import org.wso2.carbon.apimgt.api.model.Tier;
 import org.wso2.carbon.apimgt.api.model.TierPermission;
+import org.wso2.carbon.apimgt.api.model.WSDLArchiveInfo;
 import org.wso2.carbon.apimgt.impl.caching.CacheInvalidator;
 import org.wso2.carbon.apimgt.impl.dto.ApplicationRegistrationWorkflowDTO;
 import org.wso2.carbon.apimgt.impl.dto.ApplicationWorkflowDTO;
@@ -64,6 +66,7 @@ import org.wso2.carbon.apimgt.impl.dto.TierPermissionDTO;
 import org.wso2.carbon.apimgt.impl.dto.WorkflowDTO;
 import org.wso2.carbon.apimgt.impl.factory.KeyManagerHolder;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
+import org.wso2.carbon.apimgt.impl.utils.APIFileUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader;
 import org.wso2.carbon.apimgt.impl.utils.APINameComparator;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
@@ -103,12 +106,19 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -123,6 +133,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.cache.Caching;
 import javax.wsdl.Definition;
 
@@ -207,7 +219,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
      */
     @Override
 	public Set<API> getAPIsWithTag(String tagName, String requestedTenantDomain) throws APIManagementException {
-    	
+
     	 /* We keep track of the lastUpdatedTime of the TagCache to determine its freshness.
          */
         long lastUpdatedTimeAtStart = lastUpdatedTimeForTagApi;
@@ -221,7 +233,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         		lastUpdatedTimeForTagApi = System.currentTimeMillis();
                 taggedAPIs = new ConcurrentHashMap<String, Set<API>>();
             }
-        	
+
         }
 
         boolean isTenantMode = requestedTenantDomain != null && !"null".equalsIgnoreCase(requestedTenantDomain);
@@ -261,7 +273,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
 						taggedAPIs.get(tagName).add(api);
 					}
 				} else {
-					taggedAPIs.putIfAbsent(tagName, apisWithTag);					
+					taggedAPIs.putIfAbsent(tagName, apisWithTag);
 				}
 			}
 
@@ -630,7 +642,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         int totalLength=0;
         boolean isMore = false;
         String criteria = APIConstants.LCSTATE_SEARCH_TYPE_KEY;
-        
+
         try {
             Registry userRegistry;
             boolean isTenantMode=(tenantDomain != null);
@@ -679,8 +691,8 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             }
 
             PaginationContext.init(start, end, "ASC", APIConstants.API_OVERVIEW_NAME, maxPaginationLimit);
-            
-            
+
+
             criteria = criteria + APIUtil.getORBasedSearchCriteria(apiStatus);
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(userRegistry, APIConstants.API_KEY);
             if (artifactManager != null) {
@@ -777,7 +789,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         result.put("totalLength", totalLength);
         result.put("isMore", isMore);
         return result;
-        
+
     }
 
     /**
@@ -871,7 +883,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
             PaginationContext.init(start, end, "ASC", APIConstants.API_OVERVIEW_NAME, maxPaginationLimit);
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(userRegistry, APIConstants.API_KEY);
             if (artifactManager != null) {
-                
+
                 GenericArtifact[] genericArtifacts = artifactManager.findGenericArtifacts(listMap);
                 totalLength=PaginationContext.getInstance().getLength();
                 if (genericArtifacts == null || genericArtifacts.length == 0) {
@@ -1478,7 +1490,7 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         } catch (UserStoreException e) {
             handleException("Failed to get all the tags", e);
         }
- 
+
         return tagSet;
     }
 
@@ -3939,8 +3951,6 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
         }
         if (!docResourceMap.isEmpty()) {
             try {
-                ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
-                IOUtils.copy((InputStream) docResourceMap.get("Data"), arrayOutputStream);
                 String apiName = (String) apiDetails.get(API_NAME);
                 String apiVersion = (String) apiDetails.get(API_VERSION);
                 String environmentName = (String) environmentDetails.get(ENVIRONMENT_NAME);
@@ -3949,9 +3959,37 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                     log.debug("Published SOAP api gateway environment name: " + environmentName + " environment type: "
                             + environmentType);
                 }
-                byte[] updatedWSDLContent = this.getUpdatedWSDLByEnvironment(resourceUrl,
-                        arrayOutputStream.toByteArray(), environmentName, environmentType, apiName, apiVersion);
-                wsdlContent = new String(updatedWSDLContent);
+                if (resourceUrl.endsWith(APIConstants.ZIP_FILE_EXTENSION)) {
+                    WSDLArchiveInfo archiveInfo = APIUtil
+                            .extractAndValidateWSDLArchive((InputStream) docResourceMap.get("Data"));
+                    File folderToImport = new File(
+                            archiveInfo.getLocation() + File.separator + APIConstants.API_WSDL_EXTRACTED_DIRECTORY);
+                    Collection<File> wsdlFiles = APIFileUtil
+                            .searchFilesWithMatchingExtension(folderToImport, APIFileUtil.WSDL_FILE_EXTENSION);
+                    Collection<File> xsdFiles = APIFileUtil
+                            .searchFilesWithMatchingExtension(folderToImport, APIFileUtil.XSD_FILE_EXTENSION);
+                    if (wsdlFiles != null) {
+                        for (File foundWSDLFile : wsdlFiles) {
+                            Path fileLocation = Paths.get(foundWSDLFile.getAbsolutePath());
+                            byte[] updatedWSDLContent = this
+                                    .getUpdatedWSDLByEnvironment(resourceUrl, Files.readAllBytes(fileLocation),
+                                            environmentName, environmentType, apiName, apiVersion);
+                            File updatedWSDLFile = new File(foundWSDLFile.getPath());
+                            wsdlFiles.remove(foundWSDLFile);
+                            FileUtils.writeByteArrayToFile(updatedWSDLFile, updatedWSDLContent);
+                            wsdlFiles.add(updatedWSDLFile);
+                        }
+                        wsdlFiles.addAll(xsdFiles);
+                        getZipFileFromFileList(folderToImport + APIConstants.UPDATED_WSDL_ZIP, wsdlFiles);
+                        wsdlContent = folderToImport + APIConstants.UPDATED_WSDL_ZIP;
+                    }
+                } else {
+                    ByteArrayOutputStream arrayOutputStream = new ByteArrayOutputStream();
+                    IOUtils.copy((InputStream) docResourceMap.get("Data"), arrayOutputStream);
+                    byte[] updatedWSDLContent = this.getUpdatedWSDLByEnvironment(resourceUrl,
+                            arrayOutputStream.toByteArray(), environmentName, environmentType, apiName, apiVersion);
+                    wsdlContent = new String(updatedWSDLContent);
+                }
             } catch (IOException e) {
                 handleException("Error occurred while copying wsdl content into byte array stream for resource: "
                         + resourceUrl, e);
@@ -3970,6 +4008,31 @@ class APIConsumerImpl extends AbstractAPIManager implements APIConsumer {
                     data.toJSONString());
         }
         return data.toJSONString();
+    }
+
+    private void getZipFileFromFileList(String zipFile, Collection<File> fileList) throws APIManagementException {
+        byte[] buffer = new byte[1024];
+        try {
+            FileOutputStream fos = new FileOutputStream(zipFile);
+            ZipOutputStream zos = new ZipOutputStream(fos);
+            for (File file : fileList) {
+                String path = file.getAbsolutePath().substring(
+                        file.getAbsolutePath().indexOf(APIConstants.API_WSDL_EXTRACTED_DIRECTORY)
+                                + APIConstants.API_WSDL_EXTRACTED_DIRECTORY.length());
+                ZipEntry ze = new ZipEntry(path);
+                zos.putNextEntry(ze);
+                try (FileInputStream in = new FileInputStream(file)) {
+                    int len;
+                    while ((len = in.read(buffer)) > 0) {
+                        zos.write(buffer, 0, len);
+                    }
+                }
+            }
+            zos.closeEntry();
+            zos.close();
+        } catch (IOException e) {
+            handleException("Error occurred while copying file content into zip file: " + zipFile, e);
+        }
     }
 
     /**

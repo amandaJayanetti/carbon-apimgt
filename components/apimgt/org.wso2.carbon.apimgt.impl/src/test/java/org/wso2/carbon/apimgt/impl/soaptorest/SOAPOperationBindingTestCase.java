@@ -47,4 +47,12 @@ public class SOAPOperationBindingTestCase {
         Assert.assertTrue("Failed to get soap binding operations from the WSDL", processor.getWsdlInfo().getSoapBindingOperations().size() > 0);
     }
 
+    @Test
+    public void testGetWSDLProcessorForWSDLArchive() throws Exception {
+        WSDLSOAPOperationExtractor processor = SOAPOperationBindingUtils.getWSDLProcessor(
+                Thread.currentThread().getContextClassLoader().getResource("wsdls/phoneverify/").getPath());
+        Assert.assertNotNull(processor);
+        Assert.assertTrue(processor.canProcess());
+    }
+
 }
