@@ -5692,15 +5692,7 @@ public class ApiMgtDAO {
     public ArrayList<URITemplate> getAllURITemplatesAdvancedThrottle(String apiContext, String version) throws APIManagementException {
         Connection connection = null;
         PreparedStatement prepStmt = null;
-        int tenantId;
         ResultSet rs = null;
-
-        String apiTenantDomain = MultitenantUtils.getTenantDomainFromRequestURL(apiContext);
-        if (apiTenantDomain != null) {
-            tenantId = APIUtil.getTenantIdFromTenantDomain(apiTenantDomain);
-        } else {
-            tenantId = MultitenantConstants.SUPER_TENANT_ID;
-        }
 
         ArrayList<URITemplate> uriTemplates = new ArrayList<URITemplate>();
 
@@ -5711,7 +5703,6 @@ public class ApiMgtDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, apiContext);
             prepStmt.setString(2, version);
-            prepStmt.setInt(3, tenantId);
 
             rs = prepStmt.executeQuery();
             Map<String, Set<ConditionGroupDTO>> mapByHttpVerbURLPatternToId = new HashMap<String, Set<ConditionGroupDTO>>();
